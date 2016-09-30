@@ -297,15 +297,12 @@ var buildMatrix = function(task, preds, succs, sourcePreds, label, labelId) {
     }
     htmlStr += "</tr>";
 
-    var localMatrix = [];
-
     for (var i in sourcePreds) {
         var src = sourcePreds[i];
         htmlStr += "<tr><td>" + shortenDataObjectName(src.name) +"</td>";
         for (var j in succs) {
             var tgt = succs[j];
-            var vp = localMatrix[src.name+";"+tgt.name] || "";
-            document.flattenMatrix[src.id+";"+tgt.id] = vp;
+            var vp = document.flattenMatrix[src.id+";"+tgt.id] || "";
             htmlStr += "<td><input id='2;"+src.id+";"+tgt.id+";"+task.id+"' onchange='changeValue(this)' onfocus='gotFocus(this)' onblur='lostFocus(this)' value='"+vp+"'/></td>";
         }
         htmlStr += "</tr>";
@@ -321,15 +318,12 @@ var buildMatrix = function(task, preds, succs, sourcePreds, label, labelId) {
         ids.sort();
         names.sort();
 
-        if (task.businessObject.documentation)
-            localMatrix = JSON.parse(task.businessObject.documentation[0].text);
-        var src = names.toString(); //preds[i];
+        var src = names.toString();
 
-        htmlStr += "<tr><td>" + src + "</td>";// (src.name || i) +"</td>";
+        htmlStr += "<tr><td>" + src + "</td>";
         for (var j in succs) {
             var tgt = succs[j];
-            var vp = localMatrix[src + ";" + tgt.name] || "";
-            document.flattenMatrix[ids.toString() + ";" + tgt.id] = vp;
+            var vp = document.flattenMatrix[ids.toString() + ";" + tgt.id] || "";
             htmlStr += "<td><input id='1;" + ids.toString() + ";" + tgt.id + ";" + task.id + "' onchange='changeValue(this)' onfocus='gotFocus(this)' onblur='lostFocus(this)' value='" + vp + "'/></td>";
         }
         htmlStr += "</tr>";
@@ -340,8 +334,7 @@ var buildMatrix = function(task, preds, succs, sourcePreds, label, labelId) {
         htmlStr += "<tr><td>" + shortenDataObjectName(src.name) +"</td>";
         for (var j in succs) {
             var tgt = succs[j];
-            var vp = localMatrix[src.name+";"+tgt.name] || "";
-            document.flattenMatrix[src.id+";"+tgt.id] = vp;
+            var vp = document.flattenMatrix[src.id+";"+tgt.id] || "";
             htmlStr += "<td><input id='2;"+src.id+";"+tgt.id+";"+task.id+"' onchange='changeValue(this)' onfocus='gotFocus(this)' onblur='lostFocus(this)' value='"+vp+"'/></td>";
         }
         htmlStr += "</tr>";
@@ -351,8 +344,6 @@ var buildMatrix = function(task, preds, succs, sourcePreds, label, labelId) {
 
     return htmlStr;
 };
-
-
 
 function openDiagram(qrDiagram) {
     bpmnViewer.importXML(qrDiagram, function (err) {
@@ -368,6 +359,28 @@ function openDiagram(qrDiagram) {
             previousShape = null,
             selectedOutputDataObject = null,
             selectedInputDataObject = null;
+
+        var dataObjectName2IdMap = {};
+        elementRegistry.forEach( function (e) {
+          if (e.type == "bpmn:DataObjectReference")
+            dataObjectName2IdMap[shortenDataObjectName(e.businessObject.name)] = e.id;
+        });
+        elementRegistry.forEach(function (e) {
+          if (e.type == "bpmn:Task") {
+            var localMatrix = [];
+            if (e.businessObject.documentation)
+                localMatrix = JSON.parse(e.businessObject.documentation[0].text);
+
+                for (var key in localMatrix) {
+                  var nkey = key.replace(/_/g, ',');
+
+                  for (var name in dataObjectName2IdMap)
+                    nkey = nkey.replace(new RegExp(name, 'g'), dataObjectName2IdMap[name]);
+
+                  document.flattenMatrix[nkey] = localMatrix[key];
+                }
+          }
+        });
 
         document.analizeModel = function (param) {
             if (selectedOutputDataObject == null || selectedInputDataObject == null) return;
@@ -424,7 +437,6 @@ function openDiagram(qrDiagram) {
         canvas.zoom('fit-viewport');
 
         eventBus.on('element.click', function (e) {
-            // console.log(e.element.businessObject);
 
             if (previousShape != null)
                 overlays.remove({element: previousShape});
