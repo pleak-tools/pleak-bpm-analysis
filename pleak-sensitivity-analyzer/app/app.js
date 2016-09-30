@@ -106,7 +106,7 @@ var analyzeDPOnProcessDef = function (procDef, inputDataObject, outputDataObject
       for (var dataObjectId in nameMap)
         nkey = nkey.replace(new RegExp(dataObjectId, 'g'), nameMap[dataObjectId]);
       nkey = nkey.replace(/,/g, '_');
-      copyOfFlattenMatrix[nkey] = document.flattenMatrix[key].replace(/([x_][a-zA-Z0-9_]*)/g, 'this.$1');
+      copyOfFlattenMatrix[nkey] = document.flattenMatrix[key].replace(/([a-lx-z_][a-zA-Z0-9_]*)/g, 'this.$1');
     }
 
     var dataObjects = [], dataObjectsMap = {}, context = {}, outputDataObjectIndex = -1;
@@ -372,10 +372,11 @@ function openDiagram(qrDiagram) {
                 localMatrix = JSON.parse(e.businessObject.documentation[0].text);
 
                 for (var key in localMatrix) {
-                  var nkey = key.replace(/_/g, ',');
+                  var re = /([A-Za-z0-9]+)(.?)/g;
+                  var nkey = '', arr;
 
-                  for (var name in dataObjectName2IdMap)
-                    nkey = nkey.replace(new RegExp(name, 'g'), dataObjectName2IdMap[name]);
+                  while ((arr = re.exec(key)) !== null)
+                    nkey = nkey + dataObjectName2IdMap[arr[1]] + (arr[2] == '_' ? ',' : arr[2]);
 
                   document.flattenMatrix[nkey] = localMatrix[key];
                 }
@@ -441,9 +442,6 @@ function openDiagram(qrDiagram) {
             if (previousShape != null)
                 overlays.remove({element: previousShape});
 
-            if (selectedOutputDataObject != null)
-                canvas.removeMarker(selectedOutputDataObject.id, 'highlight-out-dobj');
-
             if (e.element.type == 'bpmn:Task') {
                 var predecessors = [], sourcePredecessors = [];
                 var successors = [];
@@ -475,9 +473,13 @@ function openDiagram(qrDiagram) {
                     if (selectedInputDataObject != null)
                         canvas.removeMarker(selectedInputDataObject.id, 'highlight-in-dobj');
 
-                    selectedInputDataObject = e.element;
-                    canvas.addMarker(selectedInputDataObject.id, 'highlight-in-dobj');
-
+                    if (selectedInputDataObject == e.element)
+                      selectedInputDataObject = null;
+                    else {
+                      selectedInputDataObject = e.element;
+                      canvas.addMarker(selectedInputDataObject.id, 'highlight-in-dobj');
+                    }
+                    
                     // =========================
                     // The following block of code was intended to dynamically create
                     // a form to enter the information about the distance on input data objects
@@ -492,8 +494,15 @@ function openDiagram(qrDiagram) {
                     //     html: html
                     // });
                 } else {
+                  if (selectedOutputDataObject != null)
+                      canvas.removeMarker(selectedOutputDataObject.id, 'highlight-out-dobj');
+
+                  if (selectedOutputDataObject == e.element)
+                    selectedOutputDataObject = null;
+                  else {
                     selectedOutputDataObject = e.element;
                     canvas.addMarker(selectedOutputDataObject.id, 'highlight-out-dobj');
+                  }
                 }
                 previousShape = e.element;
             }

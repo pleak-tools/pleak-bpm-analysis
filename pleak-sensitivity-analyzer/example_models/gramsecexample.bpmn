@@ -58,7 +58,7 @@
     </bpmn:parallelGateway>
     <bpmn:sequenceFlow id="SequenceFlow_0gkglp8" sourceRef="Task_13k1lsk" targetRef="ExclusiveGateway_1f5svzv" />
     <bpmn:task id="Task_1i7xifd" name="D">
-      <bpmn:documentation><![CDATA[{"x7;x7": "_d[x5_x6] * 0.4"}]]></bpmn:documentation>
+      <bpmn:documentation><![CDATA[{"x7;x7": "(_d[x5][x5] + _d[x6][x6]) * 0.4"}]]></bpmn:documentation>
       <bpmn:incoming>SequenceFlow_1qzp10j</bpmn:incoming>
       <bpmn:outgoing>SequenceFlow_1ydmjrk</bpmn:outgoing>
       <bpmn:property id="Property_1gbl56z" name="__targetRef_placeholder" />
