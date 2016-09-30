@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <style type="text/css">
+    html, body {
+      height: 100%
+    }
+
+    .content-pleak,
+    .content-pleak > div {
+        width: 100%;
+        height: 95%;
+    }
+
+    .diagram-note {
+      background-color: rgba(102, 102, 204, 0.8);
+      color: #000099;
+      border-radius: 5px;
+      font-family: Arial;
+      font-size: 12px;
+      padding: 10px;
+      min-height: 16px;
+      max-width: 200px;
+      max-height: 300px;
+      overflow: auto;
+      text-align: center;
+    }
+
+    .highlight-tgt:not(.djs-connection) .djs-visual > :nth-child(1) {
+      fill: #ffcc66 !important;
+    }
+
+    .highlight-out-dobj:not(.djs-connection) .djs-visual > :nth-child(1) {
+      fill: #adc2eb !important;
+    }
+
+    .highlight-in-dobj:not(.djs-connection) .djs-visual > :nth-child(1) {
+        fill: #ccffcc !important;
+    }
+
+    .highlight-both:not(.djs-connection) .djs-visual > :nth-child(1) {
+      fill: #ffcc66 !important;
+      stroke: #ff9966 !important;
+    }
+
+    .highlight-src:not(.djs-connection) .djs-visual > :nth-child(1) {
+      stroke: #ff9966 !important;
+    }
+  </style>
+
+  <title>Using the HTML Toolkit API</title>
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <!-- Optional theme -->
+  <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous"> -->
+
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+</head>
+<body>
+  <button id="analize-model" onclick="analizeModel()" type="button" class="btn btn-primary">Analyze</button>
+  <div class="content-pleak" id="js-drop-zone">
+      <div id="canvas"></div>
+  </div>
+  <div class="modal fade" id="myModal" role="dialog">
+      <div class="modal-dialog modal-lg">
+       <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Sensitivity</h4>
+          </div>
+          <div id="modal-body" class="modal-body"></div>
+        </div>
+      </div>
+    </div>
+    <script src="./app.js"></script>
+</body>
+</html>

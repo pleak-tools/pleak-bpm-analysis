@@ -1,0 +1,27 @@
+{
+  "name": "PLEAK - Privacy analysis tool",
+  "version": "1.0.0",
+  "description": "Tool for analysis of sensitivity of privacy-aware BPMN models",
+  "main": "app/app.js",
+  "author": {
+    "name": "Luciano Garcia Banuelos",
+    "url": "https://github.com/lgbanuelos"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "brfs": "^1.2.0",
+    "grunt": "~1.0.1",
+    "grunt-browserify": "^5.0.0",
+    "grunt-contrib-watch": "~1.0.0",
+    "grunt-contrib-connect": "~1.0.2",
+    "grunt-contrib-jshint": "~1.0.0",
+    "grunt-contrib-copy": "~1.0.0",
+    "load-grunt-tasks": "~3.5.0"
+  },
+  "dependencies": {
+    "bpmn-js": "^0.15.0",
+    "lodash": "^3.0.0",
+    "plotly.js": "^1.17.0",
+    "sprintf-js": "^1.0.3"
+  }
+}
