@@ -48,8 +48,7 @@ var analyzeDPOnProcessDef = function (procDef, inputDataObject, outputDataObject
     var targets = new Array();
     var targetTask = null;
 
-    for (var _flowElement in procDef.flowElements) {
-        var flowElement = procDef.flowElements[_flowElement];
+    var processDataAssociations = function (flowElement) {
         if (flowElement.dataInputAssociations) {
             for (var _sourceAssociation in flowElement.dataInputAssociations) {
                 var sourceAssociation = flowElement.dataInputAssociations[_sourceAssociation];
@@ -64,12 +63,24 @@ var analyzeDPOnProcessDef = function (procDef, inputDataObject, outputDataObject
                 var targetAssociation = flowElement.dataOutputAssociations[_targetAssociation];
                 var targetNode = targetAssociation.targetRef;
                 if (targetNode.id == outputDataObject.id)
-                  targetTask = flowElement;
+                    targetTask = flowElement;
                 adjList.set(flowElement, (adjList.get(flowElement) || []).concat(targetNode));
                 invAdjList.set(targetNode, (invAdjList.get(targetNode) || []).concat(flowElement));
                 targets.push(targetNode);
             }
         }
+    };
+
+    for (var _flowElement in procDef.flowElements) {
+        var flowElement = procDef.flowElements[_flowElement];
+        if (flowElement.$type.endsWith("Task"))
+            processDataAssociations(flowElement);
+        else if (flowElement.$type.endsWith("SubProcess"))
+            for (var _subFlowElement in flowElement.flowElements) {
+                var subFlowElement = flowElement.flowElements[_subFlowElement];
+                if (subFlowElement.$type.endsWith("Task"))
+                    processDataAssociations(subFlowElement);
+            }
     }
 
     var sources = new Array();
@@ -78,21 +89,26 @@ var analyzeDPOnProcessDef = function (procDef, inputDataObject, outputDataObject
     for (var node of adjList.keys()) if (targets.indexOf(node) < 0) sources.push(node);
     for (var node of targets) if (!adjList.has(node)) sinks.push(node);
 
-    var topOrder = topologicalSorting(adjList, invAdjList, sources);
 
-    var coverage = [];
-    var _dfs = function (curr) {
-        coverage.push(curr);
-        if (adjList.get(curr))
-            for (let succ of adjList.get(curr))
-                if (coverage.indexOf(succ) == -1)
-                    _dfs(succ);
-    };
-    _dfs(inputDataObject.businessObject);
+    var order = topologicalSorting(adjList, invAdjList, sources);
 
-    var order = [];
+    // ==========
+    // The following block of code computes the subgraph that is reachable from
+    // a single source data object. >> That was one of our assumptions
+    // ==========
+    // var topOrder = topologicalSorting(adjList, invAdjList, sources);
+    // var coverage = [];
+    // var _dfs = function (curr) {
+    //     coverage.push(curr);
+    //     if (adjList.get(curr))
+    //         for (let succ of adjList.get(curr))
+    //             if (coverage.indexOf(succ) == -1)
+    //                 _dfs(succ);
+    // };
+    // _dfs(inputDataObject.businessObject);
+    // var order = [];
+    // topOrder.forEach(function (elem) { if (coverage.indexOf(elem) >= 0) order.push(elem); });
 
-    topOrder.forEach(function (elem) { if (coverage.indexOf(elem) >= 0) order.push(elem); });
 
     var copyOfFlattenMatrix = {};
 
@@ -144,6 +160,9 @@ var analyzeDPOnProcessDef = function (procDef, inputDataObject, outputDataObject
                 for (var dobj of adjList.get(pred))
                   if (invAdjList.get(node).indexOf(dobj) >= 0)
                     components.push([shortenDataObjectName(dobj.name)]); /// <<<<===== HERE: What if we have multiple dataObjects connecting 'pred' and 'node'?
+              } else if (pred.$type == "bpmn:SubProcess") {
+                  var endEvent = pred.flowElements.find(function (e) {return e.$type.endsWith("EndEvent");});
+                  traverse(endEvent);
               }
             }
 
@@ -175,7 +194,13 @@ var analyzeDPOnProcessDef = function (procDef, inputDataObject, outputDataObject
         for (var j = 0; j < dataObjects.length; j++)
           context['_d'][i][j] = Infinity;
       }
-      context['_d'][0][0] = daap;
+
+      for (var i in sources) {
+          var source = sources[i];
+          var shortenName = shortenDataObjectName(source.name);
+          var index = dataObjectsMap[shortenName];
+          context['_d'][index][index] = (inputDataObject.id == source.id) ? daap : 1;
+      }
 
       var maxIndex = -1, lastMaxIndex = -1;
 
